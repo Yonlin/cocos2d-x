@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include <stack>
 #include <vector>
 #include <string>
-#include "CCObject.h"
+#include "CCRef.h"
 
 NS_CC_BEGIN
 
@@ -62,25 +62,37 @@ public:
      * Add a given object to this pool.
      *
      * The same object may be added several times to the same pool; When the
-     * pool is destructed, the object's Object::release() method will be called
+     * pool is destructed, the object's Ref::release() method will be called
      * for each time it was added.
      *
      * @param object    The object to add to the pool.
      * @js NA
      * @lua NA
      */
-    void addObject(Object *object);
+    void addObject(Ref *object);
 
     /**
      * Clear the autorelease pool.
      *
-     * Object::release() will be called for each time the managed object is
+     * Ref::release() will be called for each time the managed object is
      * added to the pool.
      * @js NA
      * @lua NA
      */
     void clear();
     
+#if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
+    /**
+     * Whether the pool is doing `clear` operation.
+     */
+    bool isClearing() const { return _isClearing; };
+#endif
+    
+    /**
+     * Checks whether the pool contains the specified object.
+     */
+    bool contains(Ref* object) const;
+
     /**
      * Dump the objects that are put into autorelease pool. It is used for debugging.
      *
@@ -95,13 +107,20 @@ private:
      * The underlying array of object managed by the pool.
      *
      * Although Array retains the object once when an object is added, proper
-     * Object::release() is called outside the array to make sure that the pool
+     * Ref::release() is called outside the array to make sure that the pool
      * does not affect the managed object's reference count. So an object can
-     * be destructed properly by calling Object::release() even if the object
+     * be destructed properly by calling Ref::release() even if the object
      * is in the pool.
      */
-    std::vector<Object*> _managedObjectArray;
+    std::vector<Ref*> _managedObjectArray;
     std::string _name;
+    
+#if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
+    /**
+     *  The flag for checking whether the pool is doing `clear` operation.
+     */
+    bool _isClearing;
+#endif
 };
 
 class CC_DLL PoolManager
@@ -127,6 +146,8 @@ public:
      */
     AutoreleasePool *getCurrentPool() const;
 
+    bool isObjectInPools(Ref* obj) const;
+
     /**
      * @js NA
      * @lua NA
@@ -142,7 +163,7 @@ private:
     
     static PoolManager* s_singleInstance;
     
-    std::stack<AutoreleasePool*> _releasePoolStack;
+    std::deque<AutoreleasePool*> _releasePoolStack;
     AutoreleasePool *_curReleasePool;
 };
 
