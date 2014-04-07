@@ -500,10 +500,8 @@ void TextureCache::waitForQuit()
 
 std::string TextureCache::getCachedTextureInfo() const
 {
-    char buffer[16386];
+    std::string buffer;
     char buftmp[4096];
-
-    memset(buffer,0,sizeof(buffer));
 
     unsigned int count = 0;
     unsigned int totalBytes = 0;
@@ -527,13 +525,14 @@ std::string TextureCache::getCachedTextureInfo() const
                (long)tex->getPixelsHigh(),
                (long)bpp,
                (long)bytes / 1024);
-        strcat(buffer, buftmp);
+        
+        buffer += buftmp;
     }
 
     snprintf(buftmp, sizeof(buftmp)-1, "TextureCache dumpDebugInfo: %ld textures, for %lu KB (%.2f MB)\n", (long)count, (long)totalBytes / 1024, totalBytes / (1024.0f*1024.0f));
-    strcat(buffer, buftmp);
+    buffer += buftmp;
 
-    return std::string(buffer);
+    return buffer;
 }
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
@@ -549,6 +548,7 @@ VolatileTexture::VolatileTexture(Texture2D *t)
 , _fileName("")
 , _text("")
 , _uiImage(nullptr)
+, _hasMipmaps(false)
 {
     _texParams.minFilter = GL_LINEAR;
     _texParams.magFilter = GL_LINEAR;
@@ -636,6 +636,12 @@ void VolatileTextureMgr::addStringTexture(Texture2D *tt, const char* text, const
     vt->_fontDefinition = fontDefinition;
 }
 
+void VolatileTextureMgr::setHasMipmaps(Texture2D *t, bool hasMipmaps)
+{
+    VolatileTexture *vt = findVolotileTexture(t);
+    vt->_hasMipmaps = hasMipmaps;
+}
+
 void VolatileTextureMgr::setTexParameters(Texture2D *t, const Texture2D::TexParams &texParams)
 {
     VolatileTexture *vt = findVolotileTexture(t);
@@ -717,6 +723,9 @@ void VolatileTextureMgr::reloadAllTextures()
             break;
         default:
             break;
+        }
+        if (vt->_hasMipmaps) {
+            vt->_texture->generateMipmap();
         }
         vt->_texture->setTexParameters(vt->_texParams);
     }

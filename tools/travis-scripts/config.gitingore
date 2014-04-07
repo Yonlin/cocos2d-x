@@ -13,7 +13,10 @@ Thumbs.db
 /templates
 /tests
 /plugin/samples
-/tools
+/tools/cocos2d-console
+/tools/jenkins-scripts
+/tools/make-package
+/tools/travis-scripts
 
 .gitattributes
 .gitignore
@@ -109,4 +112,4 @@ tags
 #include
 !/tools/cocos2d-console/console/bin/
 !/plugin-x/plugin-x_ios.xcworkspace/
-
+!/cocos/2d/platform/android/java/res/

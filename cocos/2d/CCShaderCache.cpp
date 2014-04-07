@@ -36,6 +36,7 @@ enum {
     kShaderType_PositionTextureColor,
     kShaderType_PositionTextureColor_noMVP,
     kShaderType_PositionTextureColorAlphaTest,
+    kShaderType_PositionTextureColorAlphaTestNoMV,
     kShaderType_PositionColor,
     kShaderType_PositionColor_noMVP,
     kShaderType_PositionTexture,
@@ -45,6 +46,7 @@ enum {
     kShaderType_PositionLengthTexureColor,
     kShaderType_LabelDistanceFieldNormal,
     kShaderType_LabelDistanceFieldGlow,
+    kShaderType_LabelNormal,
     kShaderType_LabelOutline,
     kShaderType_MAX,
 };
@@ -118,6 +120,10 @@ void ShaderCache::loadDefaultShaders()
     loadDefaultShader(p, kShaderType_PositionTextureColorAlphaTest);
     _programs.insert( std::make_pair(GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST, p) );
 
+    // Position Texture Color alpha test
+    p = new GLProgram();
+    loadDefaultShader(p, kShaderType_PositionTextureColorAlphaTestNoMV);
+    _programs.insert( std::make_pair(GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST_NO_MV, p) );
     //
     // Position, Color shader
     //
@@ -176,6 +182,10 @@ void ShaderCache::loadDefaultShaders()
     _programs.insert( std::make_pair(GLProgram::SHADER_NAME_LABEL_DISTANCEFIELD_GLOW, p) );
 
     p = new GLProgram();
+    loadDefaultShader(p, kShaderType_LabelNormal);
+    _programs.insert( std::make_pair(GLProgram::SHADER_NAME_LABEL_NORMAL, p) );
+
+    p = new GLProgram();
     loadDefaultShader(p, kShaderType_LabelOutline);
     _programs.insert( std::make_pair(GLProgram::SHADER_NAME_LABEL_OUTLINE, p) );
 }
@@ -199,6 +209,10 @@ void ShaderCache::reloadDefaultShaders()
     p->reset();    
     loadDefaultShader(p, kShaderType_PositionTextureColorAlphaTest);
     
+    // Position Texture Color alpha test
+    p = getProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST_NO_MV);
+    p->reset();    
+    loadDefaultShader(p, kShaderType_PositionTextureColorAlphaTestNoMV);
     //
     // Position, Color shader
     //
@@ -255,6 +269,10 @@ void ShaderCache::reloadDefaultShaders()
     p->reset();
     loadDefaultShader(p, kShaderType_LabelDistanceFieldGlow);
 
+    p = getProgram(GLProgram::SHADER_NAME_LABEL_NORMAL);
+    p->reset();
+    loadDefaultShader(p, kShaderType_LabelNormal);
+
     p = getProgram(GLProgram::SHADER_NAME_LABEL_OUTLINE);
     p->reset();
     loadDefaultShader(p, kShaderType_LabelOutline);
@@ -288,6 +306,15 @@ void ShaderCache::loadDefaultShader(GLProgram *p, int type)
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORDS);
 
             break;
+        case kShaderType_PositionTextureColorAlphaTestNoMV:
+            p->initWithByteArrays(ccPositionTextureColor_noMVP_vert, ccPositionTextureColorAlphaTest_frag);
+            
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORDS);
+
+            break;
+
         case kShaderType_PositionColor:  
             p->initWithByteArrays(ccPositionColor_vert ,ccPositionColor_frag);
             
@@ -338,7 +365,7 @@ void ShaderCache::loadDefaultShader(GLProgram *p, int type)
             
             break;
         case kShaderType_LabelDistanceFieldNormal:
-            p->initWithByteArrays(ccLabelDistanceFieldNormal_vert, ccLabelDistanceFieldNormal_frag);
+            p->initWithByteArrays(ccLabel_vert, ccLabelDistanceFieldNormal_frag);
 
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
@@ -346,7 +373,15 @@ void ShaderCache::loadDefaultShader(GLProgram *p, int type)
 
             break;
         case kShaderType_LabelDistanceFieldGlow:
-            p->initWithByteArrays(ccLabelDistanceFieldGlow_vert, ccLabelDistanceFieldGlow_frag);
+            p->initWithByteArrays(ccLabel_vert, ccLabelDistanceFieldGlow_frag);
+
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
+            p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORDS);
+
+            break;
+        case kShaderType_LabelNormal:
+            p->initWithByteArrays(ccLabel_vert, ccLabelNormal_frag);
 
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
@@ -354,7 +389,7 @@ void ShaderCache::loadDefaultShader(GLProgram *p, int type)
 
             break;
         case kShaderType_LabelOutline:
-            p->initWithByteArrays(ccLabelOutline_vert, ccLabelOutline_frag);
+            p->initWithByteArrays(ccLabel_vert, ccLabelOutline_frag);
 
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
             p->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
